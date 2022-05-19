@@ -1,33 +1,29 @@
-# Project
+# Chart Reader
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+## About
+This is the working repository for the __Chart Reader__ user study. This project is a longitudinal, participatory design study where screen reader users provide feedback and ideas on data experiences (e.g., charts).
 
-As the maintainer of this project, please make a few updates:
+## Code
+This repository contains two sections, each with their own build scripts and outputs:
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+1. __Chart Reader Source__ resides in the `./src/` directory. Each sub-directory (e.g., `./src/v1/`, `./src/v2/`) is a unique version of the prototype charting library. Unique versions are used to support iterative updates to charting library between sessions with participants. The charting libraries are built using `npm` or `yarn`. The build outputs to `./study_site/js_build/` as bundled `*.js` files.
+2. __Study Site__ resides in the `./study_site/` directory. This is a Jekyll website - Markdown files (e.g., `/study_site/index.md`) generate a static website based on template HTML files (`./study_site/_includes/` and `./study_site/_layouts/`). The Jekyll build outputs to `./study_site/_site/`.
 
-## Contributing
+This project also contains a GitHub action which will build the project and push the outputs to the Azure host server at https://chart-reader.websites.net
 
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+## Install
+This repository requires the following package managers and build frameworks:
+1. [yarn](https://classic.yarnpkg.com/en/docs/install)
+2. [Ruby and RubyGems](https://www.ruby-lang.org/en/downloads/)
+3. [jekyll and bundler Gems](https://jekyllrb.com/docs/) with `gem install jekyll bundler`
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
+Then install the package dependencies for both sections of the project structure:
 
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+1. `yarn install` for __Chart Reader Source__ 
+2. `bundle install` for __Study Site__
 
-## Trademarks
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
-trademarks or logos is subject to and must follow 
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.
+## Build
+
+1. `yarn run build` builds the __Chart Reader Source__
+2. `cd .\study_site\` and then `bundle exec jekyll serve` builds and serves __Study Site__ to localhost

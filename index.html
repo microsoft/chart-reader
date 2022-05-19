@@ -1,0 +1,2004 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title data-rh="true">Accessible Data Visualization Example</title>
+        <link
+            rel="stylesheet"
+            href="https://static2.sharepointonline.com/files/fabric/office-ui-fabric-core/11.0.0/css/fabric.min.css"/>
+        <style>
+            .covid-tracker {
+                --g-color-cases-red-1: #cf1111;
+                --g-color-cases-red-2: #fac9c7;
+                --g-color-cases-red-3: rgba(207, 17, 17, .14);
+                --g-color-cases-red-4: #eca0a0;
+                --g-color-cases-red-5: rgba(207, 17, 17, .05);
+                --g-color-deaths-black-1: #555;
+                --g-color-vaccinations-green: #2e7265;
+                --g-color-anomalies: hsl(40, 100%, 84%);
+                --g-color-anomalies-highlight: hsl(56, 100%, 64%);
+                --g-color-alert: #fef7d0;
+                --g-color-hard-grey: #262626;
+                --g-color-soft-grey: #4c4c4c;
+                --g-color-small-type: #737373;
+                --g-color-light-grey: #aaa;
+                --g-color-annot-font: #262626;
+                --g-color-annot-accent: #737373;
+            }
+            
+            .axis-y .tick:not(:first-of-type) line {
+                stroke-opacity: 0.5;
+                stroke-dasharray: 2,2;
+            }
+
+            .axis-x .tick:nth-of-type(3n + 1) text,
+            .axis-x .tick:nth-of-type(3n + 2) text {
+                visibility: hidden;
+            }
+
+            .axis .tick text {
+                color: var(--g-color-small-type);
+            }
+
+            .axis .tick line {
+                stroke: var(--g-color-light-grey);
+            }
+
+            .axis-label {
+                fill: var(--g-color-small-type);
+                font-size: 12px;
+            }
+
+            .area.cases {
+                fill: var(--g-color-cases-red-3);
+                stroke: none;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+
+            .area.cases.fade {
+                fill: var(--g-color-cases-red-5);
+            }
+
+            .annotation-group {
+                opacity: 0;
+            }
+
+            .annotation-group.highlight {
+                opacity: 1;
+            }
+
+            .annotation-ghost {
+                opacity: 1;
+            }
+
+            .annotation-ghost circle {
+                fill: #fff;
+                stroke: var(--g-color-annot-accent);
+                stroke-width: 1px;
+            }
+
+            .annotation-ghost rect {
+                fill: #fff;
+                opacity: 0.0001;
+            }
+
+            .annotation-ghost text {
+                font-family: var(--frank);
+                font-size: 10px;
+                font-weight: bold;
+                fill: var(--g-color-annot-accent);
+            }
+
+            .annotation-ghost.highlight circle {
+                stroke: var(--g-color-annot-font);
+                stroke-width: 2px;
+            }
+
+            .annotation-ghost.highlight text {
+                fill: var(--g-color-annot-font);
+            }
+
+            .month-ghost:focus, .month-ghost:focus-visible,
+            .cases-ghost:focus, .cases-ghost:focus-visible,
+            .annotation-ghost:focus, .annotation-ghost:focus-visible {
+                outline: none;
+            }
+
+            .line.cases {
+                stroke: var(--g-color-cases-red-1);
+                stroke-width: 2px;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+                fill: none;
+            }
+
+            .line.cases.fade {
+                stroke: var(--g-color-cases-red-4);
+            }
+
+            .bar.cases {
+                fill-opacity: 0.001;
+            }
+
+            .bar.cases:focus, .bar.cases:focus-visible {
+                outline: none;
+            }
+
+            .cases-group {
+                opacity: 0;
+            }
+
+            .cases-group.highlight {
+                opacity: 1;
+            }
+
+            .cases-group .bg {
+                fill:rgba(255, 255, 255, 1);
+            }
+
+            .cases-group .tick.cases {
+                font-weight: 700;
+                letter-spacing: 0;
+                font-family: var(--frank);
+                font-size: 12px;
+                text-anchor: start;
+                color: var(--g-color-small-type);
+            }
+
+            .cases-group .label.cases {
+                font-weight: 500;
+                letter-spacing: 0;
+                font-family: var(--frank);
+                font-size: 10px;
+                text-anchor: start;
+            }
+
+            .threshold.cases {
+                stroke: var(--g-color-deaths-black-1);
+                stroke-width: 2px;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+                fill: none;
+            }
+
+            .cases-group .threshold.cases.threshold-0,
+            .cases-group .threshold.cases.threshold-1 {
+                stroke: var(--g-color-light-grey);
+            }
+
+
+            .cases-group .span-line {
+                stroke: var(--g-color-deaths-black-1);
+                stroke-width: 3px;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+                fill: none;
+            }
+
+            .cases-group .span-date {
+                font-size: 10px;
+                font-weight: 500;
+                letter-spacing: 0;
+                text-transform: uppercase;
+                color: #454545;
+                text-anchor: middle;
+            }
+
+            .cases-group .span-bg {
+                fill:rgba(255, 255, 255, 0.9);
+            }
+
+            .month-group {
+                opacity: 0;
+            }
+
+            .month-group.highlight {
+                opacity: 1;
+            }
+
+            .month-group .number.cases {
+                font-weight: 700;
+                letter-spacing: 0;
+                font-family: var(--frank);
+                font-size: 15px;
+                line-height: 20px;
+                text-anchor: end;
+            }
+
+            .month-group .label.cases {
+                font-weight: 500;
+                letter-spacing: 0;
+                font-family: var(--frank);
+                font-size: 10px;
+                text-anchor: end;
+            }
+
+            .month-group .bg {
+                fill:rgba(255, 255, 255, 0.7);
+            }
+
+            .month-group .month-label {
+                font-size: 14px;
+                line-height: 18px;
+                text-anchor: middle;
+            }
+
+            .month-group .year-label {
+                font-size: 10px;
+                line-height: 18px;
+                text-anchor: middle;
+            }
+
+            .month-ghost, .cases-ghost {
+                opacity: 0.001;
+            }
+
+            .annotation {
+                opacity: 0;
+            }
+
+            .annotation.highlight {
+                opacity: 1;
+            }
+
+
+            .annotation-connector .connector {
+                fill: none;
+                stroke: var(--g-color-annot-accent);
+            }
+
+            .annotation-subject .subject {
+                fill: none;
+                stroke: var(--g-color-annot-accent);
+            }
+
+            .annotation-note text {
+                fill: var(--g-color-annot-font);
+                font-size: 12px;
+            }
+
+            .annotation-note .annotation-note-title {
+                font-weight: bold;
+            }
+
+            .annotation-note .note-line {
+                fill: none;
+                stroke: var(--g-color-annot-accent);
+            }
+
+            .annotation-note .annotation-note-bg {
+                fill:rgba(255, 255, 255, 0.7)
+            }
+
+            .data-tip path {
+                stroke: #aaa;
+                stroke-width: 1px;
+                fill: none;
+            }
+
+            .data-tip circle {
+                fill: var(--g-color-cases-red-1);
+                stroke: none;
+            }
+
+            .tooltip-container::after {
+                content: "";
+                position: absolute;
+                bottom: 11px;
+                left: -10px;
+                width: 0;
+                height: 0;
+                border-top: solid 10px white;
+                border-left: solid 10px transparent;
+                border-right: solid 10px transparent;
+            }
+
+            .tooltip-container {
+                position: absolute;
+                width: 0;
+                height: 0;
+                z-index: 899;
+                pointer-events: none;
+            }
+
+            .tooltip-inner {
+                display: block;
+                min-width: 100px;
+                height: 100%;
+                padding: 12px 15px 9px;
+                white-space: nowrap;
+            }
+
+            .tooltip-inner span {
+                display: block;
+            }
+
+            .tooltip-inner .tooltip-date {
+                font-size: 10px;
+                line-height: 10px;
+                font-weight: 500;
+                letter-spacing: .05em;
+                text-transform: uppercase;
+                border-bottom: 1px rgba(0,0,0,.15) solid;
+                margin-bottom: 6px;
+                padding-bottom: 7px;
+                color: #454545;
+            }
+
+            .tooltip-inner .tooltip-average {
+                font-weight: 700;
+                letter-spacing: 0;
+            }
+
+            .tooltip {
+                box-sizing: border-box;
+                background-color: #fff;
+                border-radius: 3px;
+                box-shadow: 0 2px 6px #00000026;
+                pointer-events: none;
+                position: absolute;
+                font-family: var(--frank);
+                letter-spacing: .025em;
+                font-size: 15px;
+                line-height: 20px;
+                display: inline-block;
+                left: 0;
+                bottom: 20px;
+            }
+
+            kbd, .keycap {
+                background-color: #f1f1f1;
+                border: 1px solid #666;
+                border-width: 1px 2px 2px 1px;
+                border-radius: 5px;
+                color: #333;
+                padding: 0 8px;
+                margin: 1px;
+                font-weight: bold;
+                font-family: monospace;
+                min-width: 17px;
+                display: inline-block;
+                text-align: center;
+            }
+
+            table {
+                margin: 1em;
+                border-collapse: separate;
+            }
+
+            tr {
+                display: table-row;
+                line-height: 30px;
+                font-weight: 300;
+                color: #333;
+            }
+
+            th {
+                text-align: left;
+            }
+
+            .site-wrapper {
+                background-color: #faf9f8;
+                min-height: 100vh;
+                display: -webkit-box;
+                display: -ms-flexbox;
+                display: flex;
+                -webkit-box-orient: vertical;
+                -webkit-box-direction: normal;
+                -ms-flex-direction: column;
+                flex-direction: column;
+                -webkit-box-align: stretch;
+                -ms-flex-align: stretch;
+                align-items: stretch;
+            }
+
+            .site-container {
+                -webkit-box-flex: 1;
+                -ms-flex-positive: 1;
+                flex-grow: 1;
+                margin: 0 auto;
+                width: 100%;
+                max-width: 1000px;
+                position: relative;
+                display: -webkit-box;
+                display: -ms-flexbox;
+                display: flex;
+                -webkit-box-orient: vertical;
+                -webkit-box-direction: normal;
+                -ms-flex-direction: column;
+                flex-direction: column;
+            }
+
+            body {
+                margin: 0;
+            }
+
+            .section-container {
+                background: #ffffff;
+                padding: 10px 28px;
+                margin-bottom: 28px;
+                border-radius: 2px;
+                background-clip: padding-box;
+                -webkit-box-shadow: 0 1.6px 3.6px 0 rgb(0 0 0 / 13%), 0 0.3px 0.9px 0 rgb(0 0 0 / 11%);
+                box-shadow: 0 1.6px 3.6px 0 rgb(0 0 0 / 13%), 0 0.3px 0.9px 0 rgb(0 0 0 / 11%);
+                position: relative;
+                opacity: 1;
+                -webkit-transform: translate3d(0,0,0);
+                transform: translate3d(0,0,0);
+                -webkit-transition: opacity .3s cubic-bezier(.1,.9,.2,1) 50ms,-webkit-transform .3s cubic-bezier(.1,.9,.2,1);
+                transition: opacity .3s cubic-bezier(.1,.9,.2,1) 50ms,-webkit-transform .3s cubic-bezier(.1,.9,.2,1);
+                transition: transform .3s cubic-bezier(.1,.9,.2,1),opacity .3s cubic-bezier(.1,.9,.2,1) 50ms;
+                transition: transform .3s cubic-bezier(.1,.9,.2,1),opacity .3s cubic-bezier(.1,.9,.2,1) 50ms,-webkit-transform .3s cubic-bezier(.1,.9,.2,1);
+            }
+
+            @media screen and (min-width: 768px) {
+                .content-wrapper {
+                    padding-left: 32px;
+                    padding-right: 32px;
+                    padding-top: 16px;
+                    padding-bottom: 16px;
+                    -webkit-box-orient: horizontal;
+                    -webkit-box-direction: normal;
+                    -ms-flex-direction: row;
+                    flex-direction: row;
+                    -webkit-box-pack: center;
+                    -ms-flex-pack: center;
+                    justify-content: center;
+                }
+            }
+
+            @media screen and (min-width: 1084px) {
+                .content-wrapper {
+                    max-width: 1000px;
+                }
+            }
+
+        </style>
+    </head>
+    
+    <body class="ms-Fabric covid-tracker" dir="ltr">
+        <div class="site-wrapper">
+            <div class="site-container">            
+                <div class="content-wrapper">
+                    <div class="content-container">
+                        <h2>Accessible Data Visualization Example</h2>
+                        <div class="section-container">
+                            <p>By: <a href="mailto:johnthompson@microsoft.com">John Thompson</a> and <a href="mailto:bongshin@microsoft.com">Bongshin Lee</a> of the EPIC Group, Microsoft Research</p>
+                            <p>
+                                We explore innovative solutions for accessible data visualization that provide interactive, information layers to communicate data.
+                                Users can navigate the layers with keyboard interactions and a screen reader.
+                            </p>
+                            <p>
+                                <b>The Problem:</b> Currently, data visualizations on the web are inaccessible to screen reader users.
+                                Visualizations are often handled by screen readers as an image and described by alternative text ("alt-text").
+                                Alternative descriptions only meet the floor requirement for accessibly communicating data.
+                                Descriptions are summative - they describe the most important insights, neglecting details and nuance.
+                                They are subjective - the author decides what is the most important message to convey.
+                                And alternative text lacks connection to the underlying data - users cannot investigate or explore the data further.
+                                The ceiling for accessible data visualization should address these shortcomings through interaction.
+                            </p>
+                            <p>
+                                <b>The Solution:</b> The current ceiling for accessible data visualization provides exploratory interaction.
+                                For example, accessible interactive charting libraries such as <a href="https://www.highcharts.com/accessibility">High Charts</a>
+                                or <a href="https://developer.visa.com/pages/chart-components">Visa Chart Components</a> provide keyboard navigation of charts via
+                                data points or data series.
+                                However, this form of interaction only supports exploration at the lowest information level - for each individual data point.
+                                The user must read each individual data point to come to an understanding of the data, similar to reading an entire data table.
+                                This is a tedious and cognitively difficult method of data exploration.
+                                Instead, we envision augmenting accessible charts with additional interactive, information layers.
+                                These additional layers provide varying levels of communicative intent to explore.
+                                In the following chart we provide an example of this approach.
+                                We add the capability to keyboard navigate the following information layers:    
+                            </p>
+                            <ol>
+                                <li><em>Insights</em> such as trends, outliers, extrema, or anomalies of the dataset. The underlying data points can be explored for each insight.</li>
+                                <li><em>Axes and Legends</em> are the substrate that make up a chart. Slices or bins of each axis or legend provide a summative layer to explore data.</li>
+                                <li><em>Data Points</em> are the individual rows of the data to be explored.</li>
+                            </ol>
+                            <a href="/.auth/logout">Log out</a>
+                        </div>
+                        <div class="section-container">
+                            <h3>Keyboard Interaction Guide</h3>
+                            <table class="ms-Table">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Command</th>
+                                        <th scope="col">Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><span class="keycap" role="img" aria-label="Enter Key">Enter</span> on the chart or grouping.</td>
+                                        <td>Enter the chart or drill down a level.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="keycap" role="img" aria-label="Escape Key">Esc</span> on grouping.</td>
+                                        <td>Drill up a level.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="keycap" role="img" aria-label="Tab Key">Tab</span> at any time.</td>
+                                        <td>Exit the chart.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="keycap" role="img" aria-label="Arrow Left">←</span> or <span class="keycap" role="img" aria-label="Arrow Right">→</span> on grouping or day.</td>
+                                        <td>Move among sibling groupings or days.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="keycap" role="img" aria-label="Enter Key">Enter</span> and <span class="keycap" role="img" aria-label="Shift Key">Shift</span> on grouping.</td>
+                                        <td>Play/pause data sonification of the grouping.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="section-container">
+                            <h3>Example Chart: COVID-19 Cases in the United States</h3>
+                            <p>
+                                This chart communicates reported COVID-19 cases as a 7-day rolling average.
+                                The original <a href="https://github.com/nytimes/covid-19-data">dataset</a> and <a href="https://www.nytimes.com/interactive/2021/us/covid-cases.html">chart design</a> both come from the New York Times.
+                            </p>
+                            <figure style="margin: 0;">
+                                <div style="height: 400px; width: 100%; position: relative;">
+                                    <div id="chart-container" style="height: 100%; width: 100%;"
+                                    aria-hidden="false" dir="ltr" aria-hidden="false" tabindex="0" role="application" aria-label="Interactive line chart. X axis represents days from pandemic start, January 2020 to February 2022. Y axis represents reported covid cases in the United States as 7 day rolling average. Press the Enter key to drill down to interactive axes and annotation groupings. Press the Arrow keys to navigate between interactive groupings.">
+                                        <svg aria-hidden="false"></svg>
+                                    </div>
+                                    <div class="tooltip-container" aria-hidden="true">
+                                        <div class="tooltip">
+                                            <div class="tooltip-inner">
+                                                <span class="tooltip-date">Aug. 13, 2021</span>
+                                                <span class="tooltip-average">Daily average: 128,648</span>
+                                                <span class="tooltip-cases">New cases: 187,392</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </figure>
+                        </div>
+                </div>
+            </div>
+        </div>
+            
+        </div>
+        
+
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+        <script>
+            const parseDate = d3.timeParse('%Y-%m-%d'),
+                formatDate = d3.timeFormat('%b %-d, %Y'),
+                formatDateLong = d3.timeFormat('%B %-d, %Y'),
+                formatDateShort = d3.timeFormat('%b %-d'),
+                formatDateMonth = d3.timeFormat('%B %Y'),
+                formatDateMonthOnly = d3.timeFormat('%B'),
+                formatDateClass = d3.timeFormat('%b-%d-%y'),
+                formatCases = d3.format(',d');
+
+            // TODO How should the aria text be described?
+
+
+            let annotations = [
+                
+                {
+                    'target': {'type': 'extrema', 'axis': 'x', 'values': ['2022-01-14', '2022-01-14']},
+                    'dx': -30,
+                    'dy': 30,
+                    'note': {'title': ['Highest average cases'], 'label': ['Average cases reach all-time', 'high of 806,801 average daily cases', 'on January 14, 2022'],},
+                },
+                {
+                    'target': {'type': 'trend-increase', 'axis': 'x', 'values': ['2021-11-07', '2022-01-14']},
+                    'dx': -30,
+                    'dy': 30,
+                    'note': {'title': ['Cases surge, winter 2021'], 'label': ['Daily cases increase by 1,123%', 'reaching highest peak of 807k', 'cases on January 14, 2022'], },
+                },
+                {
+                    'target': {'type': 'anomaly', 'axis': 'x', 'values': ['2021-11-24', '2021-12-05']},
+                    'dx': -10,
+                    'dy': -30,
+                    'note': {'title': ['Anomaly in reported cases'], 'label': ['Average cases deviate from', 'upward trend during November 24 to', 'December 3, 2021'],},
+                },
+                {
+                    'target': {'type': 'trend-decrease', 'axis': 'x', 'values': ['2021-09-02', '2021-10-25']},
+                    'dx': -1,
+                    'dy': -55,
+                    'note': {'title': ['Cases decline late in 2021'], 'label': ['Average cases decline from 164k', 'to 70k in 55 days starting September 2', 'to October 25, 2021'], },
+                },
+                {
+                    'target': {'type': 'trend-increase', 'axis': 'x', 'values': ['2021-07-06', '2021-09-01']},
+                    'dx': -10,
+                    'dy': -60,
+                    'note': {'title': ['Cases increase, summer 2021'], 'label': ['Average cases increase from 14k to over 164k', 'in 56 days starting July 6 and', 'peaking on Sep 1'], },
+                },
+                {
+                    'target': {'type': 'extrema', 'axis': 'x', 'values': ['2021-06-21', '2021-06-22']},
+                    'dx': -1,
+                    'dy': -120,
+                    'note': {'title': ['Lowest cases since pandemic start'], 'label': ['Average cases reach lowest since', 'initial wave. 11,179 average cases', 'on June 21, 2021'],},
+                },
+                {
+                    'target': {'type': 'trend-decrease', 'axis': 'x', 'values': ['2021-04-14', '2021-06-06']},
+                    'dx': 0,
+                    'dy': -75,
+                    'note': {'title': ['Cases decline, summer 2021'], 'label': ['Daily cases decrease by 81%', 'reaching low of 14k cases', 'on June 6, 2021'], },
+                },
+                {
+                    'target': {'type': 'trend-decrease', 'axis': 'x', 'values': ['2021-01-12', '2021-03-14']},
+                    'dx': 20,
+                    'dy': -60,
+                    'note': {'title': ['Cases fall, spring 2021'], 'label': ['Average cases fall from 250k', 'to 53k in 61 days starting January 12', 'to March 14, 2021'], },
+                },
+                {
+                    'target': {'type': 'trend-increase', 'axis': 'x', 'values': ['2020-10-06', '2021-01-11']},
+                    'dx': 20,
+                    'dy': -20,
+                    'note': {'title': ['Cases surge, winter 2020'], 'label': ['Daily cases increase by 468%', 'reaching a peak over 250k cases', 'on Jan 11, 2021'], },
+                },
+                {
+                    'target': {'type': 'anomaly', 'axis': 'x', 'values': ['2020-11-25', '2020-12-05']},
+                    'dx': -20,
+                    'dy': -20,
+                    'note': {'title': ['Anomaly in reported cases'], 'label': ['Average cases deviate from', 'upward trend during November 25 to', 'December 5, 2020'],},
+                },
+                {
+                    'target': {'type': 'anomaly', 'axis': 'x', 'values': ['2020-12-22', '2021-01-04']},
+                    'dx': -20,
+                    'dy': -20,
+                    'note': {'title': ['Anomaly in reported cases'], 'label': ['Average cases deviate from', 'upward trend during December 22 to', 'January 4, 2021'],},
+                },
+                {
+                    'target': {'type': 'trend-decrease', 'axis': 'x', 'values': ['2020-07-25', '2020-09-12']},
+                    'dx': -20,
+                    'dy': -20,
+                    'note': {'title': ['Cases decline, summer 2020'], 'label': ['Daily cases decrease by 48%', 'reaching low of 35k cases', 'on September 12, 2020'], },
+                },
+                {
+                    'target': {'type': 'trend-increase', 'axis': 'x', 'values': ['2020-06-15', '2020-07-19']},
+                    'dx': 20,
+                    'dy': -100,
+                    'note': {'title': ['Cases increase, summer 2020'], 'label': ['Average cases increase by 205%', 'reaching a peak over 65k cases', 'on July 19'], },
+                },
+                {
+                    'target': {'type': 'trend-increase', 'axis': 'x', 'values': ['2020-03-01', '2020-04-10']},
+                    'dx': 10,
+                    'dy': -40,
+                    'note': {'title': ['Initial cases surge in 2020'], 'label': ['Average cases go from 7 to 31,700', 'in 41 days starting April 1 and', 'peaking on March 10'], },
+                },   
+            ];
+
+            let width = 800, height = 400;
+            const margin = {l: 60, r: 40, t: 60, b: 40};
+
+            const $chartContainer = d3.select('#chart-container');
+            let rect = $chartContainer.node().getBoundingClientRect();
+            width = rect.width, height = rect.height;
+
+            const xScale = d3.scaleTime().range([0, width - margin.l - margin.r]),
+                yScale = d3.scaleLinear().range([height - margin.t - margin.b, 0]),
+                tooltipScale = d3.scaleTime().range([-10, -90]);
+
+            const avgLine = d3.line().x(d => xScale(d.date)).y(d => yScale(d.cases_avg)),
+                avgArea = d3.area().x(d => xScale(d.date)).y1(d => yScale(d.cases_avg)).y0(yScale(0));
+
+            const xAxis = d3.axisBottom(xScale).ticks(d3.timeMonth),
+                yAxis = d3.axisRight(yScale).tickSize(xScale.range()[1] + 60);
+            
+            const $svg = $chartContainer.select('svg')
+                .attr('width', '100%').attr('height', '100%');
+
+            const $chart = $svg.append('g')
+                .attr('transform', 'translate(' + [margin.l, margin.t] + ')');
+
+            const $axesG = $chart.append('g').attr('aria-hidden', 'true'),
+                $markG = $chart.append('g').attr('aria-hidden', 'true'),
+                $annotG = $chart.append('g').attr('aria-hidden', 'true'),
+                $hoverG = $chart.append('g').attr('aria-hidden', 'true'),
+                $ghostG = $chart.append('g').attr('aria-hidden', 'false').attr('role', 'region');
+
+            const $dataTip = $hoverG.append('g')
+                .attr('class', 'data-tip')
+                .attr('transform', 'translate(0,0)')
+                .style('visibility', 'hidden');
+
+            $dataTip.append('path');
+            $dataTip.append('circle')
+                .attr('r', 4);
+
+            const $tooltipContainer = d3.select('.tooltip-container'),
+                $tooltip = $tooltipContainer.select('.tooltip'),
+                $tooltipDate = $tooltipContainer.select('.tooltip-date'),
+                $tooltipAvg = $tooltipContainer.select('.tooltip-average'),
+                $tooltipCases = $tooltipContainer.select('.tooltip-cases');
+
+            $tooltipContainer.style('visibility', 'hidden');
+
+            const drawChart = (data, error) => {
+                console.log(data);
+
+                let audioContext, compressor;
+                // let oscillator, gain;
+
+                var startTime = 0, tempo = 120.0, lookahead = 1500.0, scheduleAheadTime = 1.5;
+                var nextNoteTime = 0.0, noteResolution = 0, noteLength = 0.5;
+                var currentSonifyIndex = 0;
+                var dataToSonify = data, queueToSonify = [], gainNodeQueue = [], highlightTimerQueue = [];
+                var timerId = -1;
+                var unlocked = false, isPlaying = false;
+
+                let iso226dbSPL = [93.94, 88.17, 82.63, 77.78, 73.08, 68.48, 64.37, 60.59, 56.70, 53.41, 50.40, 47.58, 44.98, 43.05, 41.34, 40.06, 40.01, 41.82, 42.51, 39.23],
+                    iso226fqSPL = [25,    31.5,  40,    50,    63,    80,    100,   125,   160,   200,   250,   315,   400,   500,   630,   800,   1000,  1250,  1600,  2000],
+                    iso226gnSPL = iso226dbSPL.map(db => Math.pow(10, (db - 50) / 10));
+
+                console.log(iso226gnSPL)
+
+                let normalizeScale = d3.scaleLinear().range([0,1]).domain(d3.extent(data, d => d.cases_avg)),
+                    gainScale = d3.scaleLinear().domain(iso226fqSPL).range(iso226gnSPL);
+                    A4 = 440, TWO_OCTAVES = 15;
+
+
+                let scheduleDataToSonify = (d, i, time) => {
+                    // console.log(time);
+                    // push the data on the queue, even if we're not playing
+                    // Compute note
+                    let normalized = normalizeScale(d.cases_avg),
+                        noteNumber = (normalized * 44) + 40, // Between 1 to 88
+                        frequency =  A4 * Math.pow(2, (noteNumber - 49) / 12),
+                        g = Math.min(2.5, Math.max(0.2, gainScale(frequency)));
+                    // console.log({time, d,  g, normalized, noteNumber, frequency});
+
+                    let oscillator = audioContext.createOscillator(),
+                        gain = audioContext.createGain();
+                    oscillator.connect(gain);
+                    gain.connect(compressor);
+                    compressor.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = frequency;
+                    oscillator.type = 'triangle';
+                    oscillator.start(time);
+
+                    gain.gain.setValueAtTime(0.00001, time)
+                    gain.gain.exponentialRampToValueAtTime(g, time + noteLength * 0.1)
+                    gain.gain.setValueAtTime(g, time + noteLength * 0.5)
+                    gain.gain.exponentialRampToValueAtTime(0.00001, time + noteLength * 0.6)
+
+                    gainNodeQueue.push(gain);
+
+                    if (gainNodeQueue.length > 4) {
+                        gainNodeQueue = gainNodeQueue.slice(1, 5);
+                    }
+                    
+                    oscillator.stop(time + noteLength)
+                }
+
+                let scheduleDataToHighlight = (d, i, time) => {
+                    console.log({d, i, time});
+
+                    let highlightTimerId = setTimeout(() => {
+                        $dataTip.style('visibility', 'visible')
+                            .attr('transform', 'translate(' + [xScale(d.date), yScale(d.cases_avg)] + ')');
+                        $dataTip.select('path').attr('d', 'M0,0v'+ (barHeight - yScale(d.cases_avg)));
+
+                        $tooltip.style('transform', 'translate(' + tooltipScale(d.date) + '%, 0px)');
+                        $tooltipContainer.style('visibility', 'visible')
+                            .style('left', (xScale(d.date) + margin.l)+'px')
+                            .style('top', (yScale(d.cases_avg) + margin.t)+'px');
+                        $tooltipDate.text(formatDate(d.date));
+                        $tooltipAvg.text('Daily average: ' + formatCases(d.cases_avg));
+                        $tooltipCases.text('New cases: ' + formatCases(d.cases));
+
+                        // let bar = d3.select(selectClass);
+                        // bar.attr('aria-hidden', 'true');
+                        // let toFocus = bar.node();
+                        // if (toFocus) {
+                        //     toFocus.focus();
+                        // }
+                        // bar.attr('aria-hidden', 'false');
+                        let timerIndex = highlightTimerQueue.indexOf(highlightTimerId);
+                        if (timerIndex > -1) {
+                            highlightTimerQueue.splice(timerIndex, 1);
+                        }
+                    }, time * 1e3);
+                    highlightTimerQueue.push(highlightTimerId);
+                }
+
+                let nextNote = () => {
+                    nextNoteTime += noteLength;
+                    currentSonifyIndex++;
+                }
+
+                let cleanUpSonifier = () => {
+                    // Come up with a way to turn off all nodes playing
+                    gainNodeQueue.forEach(gain => {
+                        console.log("clean up gain node")
+                        gain.gain.cancelScheduledValues(audioContext.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + noteLength)
+                    });
+                    highlightTimerQueue.forEach(highlightTimerId => {
+                        clearTimeout(highlightTimerId);
+                    });
+                    gainNodeQueue = [];
+                    highlightTimerQueue = [];
+                }
+
+                let scheduler = () => {
+                    console.log('Scheduler called again')
+                    while (nextNoteTime < audioContext.currentTime + scheduleAheadTime && currentSonifyIndex < dataToSonify.length) {
+                        scheduleDataToSonify(dataToSonify[currentSonifyIndex], currentSonifyIndex, nextNoteTime);
+                        scheduleDataToHighlight(dataToSonify[currentSonifyIndex], currentSonifyIndex, nextNoteTime - audioContext.currentTime);
+                        nextNote();
+                    }
+                    
+                    // If at the end of playback, toggle play and clean up in the future
+                    if (currentSonifyIndex >= dataToSonify.length) {
+                        clearInterval(timerId);
+                        console.log((nextNoteTime - audioContext.currentTime) * 1e3);
+                        setTimeout(() => {
+                            console.log('Delayed playback stop is called');
+                            currentSonifyIndex = 0;
+                            togglePlay();
+                        }, (nextNoteTime - audioContext.currentTime) * 1e3);
+                        
+                    }
+                }
+
+                let togglePlay = () => {
+                    if (!audioContext) {
+                        audioContext = new AudioContext();
+                    }
+                    if (!compressor) {
+                        compressor = audioContext.createDynamicsCompressor();
+                    }
+                    if (!unlocked) {
+                        // play silent buffer to unlock the audio
+                        let buffer = audioContext.createBuffer(1, 1, 22050);
+                        let node = audioContext.createBufferSource();
+                        node.buffer = buffer;
+                        node.start(0);
+                        unlocked = true;
+                    }
+                    console.log(audioContext.currentTime);
+
+                    isPlaying = !isPlaying;
+
+                    if (isPlaying) {
+                        audioContext.resume();
+
+                        nextNoteTime = audioContext.currentTime;
+                        scheduler();
+
+                        if (dataToSonify.length > Math.ceil(lookahead / noteLength / 1e3)) {
+                            timerId = setInterval(scheduler, lookahead);
+                        }
+                    } else {
+                        clearInterval(timerId);
+                        cleanUpSonifier();
+                    }
+                    console.log(timerId, isPlaying, currentSonifyIndex, Math.ceil(lookahead / noteLength / 1e3));
+                }
+
+                let dataByMonth = [...d3.rollup(data,
+                    v => {
+                        return ({
+                            'date': v[0].date,
+                            'mean_cases': d3.mean(v, d => d.cases),
+                            'median_cases': d3.median(v, d => d.cases),
+                            'max_cases': d3.max(v, d => d.cases),
+                            'min_cases': d3.min(v, d => d.cases),
+                            'mean_cases_avg': d3.mean(v, d => d.cases_avg),
+                            'median_cases_avg': d3.median(v, d => d.cases_avg),
+                            'max_cases_avg': d3.max(v, d => d.cases_avg),
+                            'min_cases_avg': d3.min(v, d => d.cases_avg),
+                            'num_of_days': v.length,
+                            'values': v,
+                        })
+                    },
+                    d => (d.date.getFullYear() + ' ' + d.date.getMonth())
+                ).values()];
+
+                let createLabel = (v) => {
+                    let d0 = v[0].date, d1 = v[v.length - 1].date;
+                    if (v.length === 1) {
+                        return formatDateShort(d0);
+                    } else if (d0.getMonth() === d1.getMonth()) {
+                        return formatDateShort(d0) + '-' + d1.getDate();
+                    } else {
+                        return formatDateShort(d0) + ' - ' + formatDateShort(d1);
+                    }
+                };
+
+                let createAria = (v) => {
+                    let d0 = v[0].date, d1 = v[v.length - 1].date;
+                    if (v.length === 1) {
+                        return formatDate(d0);
+                    } else if (d0.getMonth() === d1.getMonth()) {
+                        return formatDateShort(d0) + ' to ' + d1.getDate() + ' ' + d0.getFullYear();
+                    } else {
+                        return formatDateShort(d0) + ' to ' + formatDate(d1);
+                    }
+                };
+                
+                // Group rows by 50,000 cases increments
+                // Group sequential days together to summarize
+                let dataByCases = [...d3.rollup(data,
+                    v => {
+                        // Create a map for each
+                        let m = new Map();
+                        let i0 = 0, i1 = 0;
+                        // Handle if 1 element
+                        // Handle on last element
+                        for (let i = 0; i < v.length - 1; i++) {
+                            // Successive day between entries
+                            if (v[i+1].date.getTime() - v[i].date.getTime() <= 9e7) { // 25 hours to account for daylight savings
+                                i1 = i+1;
+                            } else {
+                                i1 = i;
+                                m.set(formatDateClass(v[i0].date) + '_' + formatDateClass(v[i1].date), 
+                                    {
+                                        'values': v.slice(i0, i1 + 1),
+                                        'days': i1 - i0 + 1,
+                                        'date_class': formatDateClass(v[i0].date) + '_' + formatDateClass(v[i1].date),
+                                        'date_label': createLabel(v.slice(i0, i1 + 1)),
+                                        'date_aria': createAria(v.slice(i0, i1 + 1)),
+                                        'y0': Math.floor(v[0].cases_avg / 5e4) * 5e4,
+                                        'y1': Math.ceil(v[0].cases_avg / 5e4) * 5e4,
+                                    }
+                                );
+                                i0 = i+1;
+                            }
+                        }
+                        i1 = v.length - 1;
+                        m.set(formatDateClass(v[i0].date) + '_' + formatDateClass(v[i1].date), 
+                            {
+                                'values': v.slice(i0, i1 + 1),
+                                'days': i1 - i0 + 1,
+                                'date_class': formatDateClass(v[i0].date) + '_' + formatDateClass(v[i1].date),
+                                'date_label': createLabel(v.slice(i0, i1 + 1)),
+                                'date_aria': createAria(v.slice(i0, i1 + 1)),
+                                'y0': Math.floor(v[0].cases_avg / 5e4) * 5e4,
+                                'y1': Math.ceil(v[0].cases_avg / 5e4) * 5e4,
+                            }
+                        );
+                        return m;   
+                    },
+                    d => Math.floor(d.cases_avg / 5e4)
+                ).values()];
+
+                console.log(dataByCases);
+                console.log(dataByMonth);
+
+                // TODO need to keep track of currIndex for each nav type
+                let navGroups = [
+                    {'type': 'a', 'index': 0, 'currIndex': [0, 0]},
+                    {'type': 'x', 'index': 1, 'currIndex': [0, 0]},
+                    {'type': 'y', 'index': 2, 'currIndex': [0, 0]},
+                ];
+
+                let navigateBy = '',
+                    currGroup = navGroups[0];
+
+                const xExtent = d3.extent(data, d => d.date),
+                    yExtent = d3.extent(data, d => d.cases_avg);
+
+                xScale.domain(xExtent);
+                yScale.domain([0, yExtent[1]]);
+                tooltipScale.domain(xExtent);
+                const indexScale = d3.scaleTime().domain(xExtent).range([1, data.length]);
+
+                const barWidth = xScale.range()[1] / data.length,
+                    barHeight = yScale.range()[0];
+
+                let $areaSelect = $markG.selectAll('.area.cases.all-time')
+                    .data([data]);
+                
+                let $areaEnter = $areaSelect.enter().append('path')
+                    .attr('class', 'area cases all-time');
+
+                let $areaMerge = $areaSelect.merge($areaEnter)
+                    .datum(d => d)
+                    .attr('d', avgArea);
+
+                let $lineSelect = $markG.selectAll('.line.cases.all-time')
+                    .data([data]);
+                
+                let $lineEnter = $lineSelect.enter().append('path')
+                    .attr('class', 'line cases all-time');
+
+                let $lineMerge = $lineSelect.merge($lineEnter)
+                    .datum(d => d)
+                    .attr('d', avgLine);
+
+
+                // INTERACTIVE SLICE COMPONENTS
+                // Month groups
+                let $groupMonthSelect = $markG.selectAll('.month-group.cases')
+                    .data(dataByMonth);
+
+                let $groupMonthEnter = $groupMonthSelect.enter().append('g')
+                    .attr('class', d => ('month-group cases date-'+ formatDateClass(d.date)));
+
+                let $groupMonthMerge = $groupMonthSelect.merge($groupMonthEnter);
+
+                let $areaMonthSelect = $groupMonthMerge.selectAll('.area.cases')
+                    .data(d => [d]);
+
+                let $areaMonthEnter = $areaMonthSelect.enter().append('path')
+                    .attr('class', 'area cases');
+
+                let $areaMonthMerge = $areaMonthSelect.merge($areaMonthEnter)
+                    .datum(d => d.values)
+                    .attr('d', avgArea);
+
+                let $lineMonthSelect = $groupMonthMerge.selectAll('.line.cases')
+                    .data(d => [d]);
+
+                let $lineMonthEnter = $lineMonthSelect.enter().append('path')
+                    .attr('class', 'line cases');
+
+                let $lineMonthMerge = $lineMonthSelect.merge($lineMonthEnter)
+                    .datum(d => d.values)
+                    .attr('d', avgLine);
+
+                let $thresholdMonthSelect = $groupMonthMerge.selectAll('.threshold.cases')
+                    .data(d => [d, d]);
+
+                let $thresholdMonthEnter = $thresholdMonthSelect.enter().append('path')
+                    .attr('class', (d, i) => ('threshold cases threshold-' + i));
+
+                let $thresholdMonthMerge = $thresholdMonthSelect.merge($thresholdMonthEnter)
+                    .attr('d', (d, i) => {
+                        let y = i === 0 ? yScale.range()[0] : yScale(d.mean_cases);
+                        return 'M' + xScale(d.values[0].date) + ',' + y + 'L' + xScale(d.values[d.values.length - 1].date) + ',' + y;
+                    });
+
+                let $bgMonthSelect = $groupMonthMerge.selectAll('.bg')
+                    .data(d => [d, d]);
+
+                let $bgMonthEnter = $bgMonthSelect.enter().append('rect')
+                    .attr('class', (d, i) => ('bg bg-' + i));
+
+                let $bgMonthMerge = $bgMonthSelect.merge($bgMonthEnter)
+                    .attr('height', 36)
+                    .attr('width', 70)
+                    .attr('rx', 6)
+                    .attr('ry', 6)
+                    .attr('transform', (d, i) => {
+                        let y = i === 0 ? yScale.range()[0] + 2 : yScale(d.mean_cases) - 12,
+                            x = i === 0 ? xScale(d.values[Math.floor(d.values.length/2)].date) - 35 : xScale(d.values[0].date) - 74;
+                        return 'translate(' + [x, y] + ')';
+                    });
+                
+                let $monthMonthSelect = $groupMonthMerge.selectAll('.month-label')
+                    .data(d => [d]);
+
+                let $monthMonthEnter = $monthMonthSelect.enter().append('text')
+                    .attr('class', 'month-label');
+
+                let $monthMonthMerge = $monthMonthSelect.merge($monthMonthEnter)
+                    .attr('transform', d => {
+                        let x = xScale(d.values[Math.floor(d.values.length/2)].date);
+                        return 'translate(' + [x, yScale.range()[0] + 12] + ')';
+                    })
+                    .attr('dy', '0.3em')
+                    .text(d => formatDateMonthOnly(d.date));
+
+                let $yearMonthSelect = $groupMonthMerge.selectAll('.year-label')
+                    .data(d => [d]);
+
+                let $yearMonthEnter = $yearMonthSelect.enter().append('text')
+                    .attr('class', 'year-label');
+
+                let $yearMonthMerge = $yearMonthSelect.merge($yearMonthEnter)
+                    .attr('transform', d => {
+                        let x = xScale(d.values[Math.floor(d.values.length/2)].date);
+                        return 'translate(' + [x, yScale.range()[0] + 22] + ')';
+                    })
+                    .attr('dy', '0.7em')
+                    .text(d => d.date.getFullYear());
+
+                let $textMonthSelect = $groupMonthMerge.selectAll('.number.cases')
+                    .data(d => [d]);
+
+                let $textMonthEnter = $textMonthSelect.enter().append('text')
+                    .attr('class', 'number cases');
+
+                let $textMonthMerge = $textMonthSelect.merge($textMonthEnter)
+                    .attr('transform', d => ('translate(' + [xScale(d.values[0].date) - 6, yScale(d.mean_cases)] + ')'))
+                    .attr('dy', '0.3em')
+                    .text(d => formatCases(d.mean_cases));
+
+                let $labelMonthSelect = $groupMonthMerge.selectAll('.label.cases')
+                    .data(d => [d]);
+
+                let $labelMonthEnter = $labelMonthSelect.enter().append('text')
+                    .attr('class', 'label cases');
+
+                let $labelMonthMerge = $labelMonthSelect.merge($labelMonthEnter)
+                    .attr('transform', d => ('translate(' + [xScale(d.values[0].date) - 6, yScale(d.mean_cases) + 10] + ')'))
+                    .attr('dy', '0.7em')
+                    .text('average cases');
+
+                // Cases Groups
+                let $groupCasesSelect = $markG.selectAll('.cases-group')
+                    .data(dataByCases);
+
+                let $groupCasesEnter = $groupCasesSelect.enter().append('g')
+                    .attr('class', d => ('cases-group group-' + d.values().next().value.y0));
+
+                let $groupCasesMerge = $groupCasesSelect.merge($groupCasesEnter);
+
+                let $areaCasesSelect = $groupCasesMerge.selectAll('.area.cases')
+                    .data(d => d.values());
+
+                let $areaCasesEnter = $areaCasesSelect.enter().append('path')
+                    .attr('class', 'area cases');
+
+                let $areaCasesMerge = $areaCasesSelect.merge($areaCasesEnter)
+                    .datum(d => d.values)
+                    .attr('d', avgArea);
+
+                let $lineCasesSelect = $groupCasesMerge.selectAll('.line.cases')
+                    .data(d => d.values());
+
+                let $lineCasesEnter = $lineCasesSelect.enter().append('path')
+                    .attr('class', 'line cases');
+
+                let $lineCasesMerge = $lineCasesSelect.merge($lineCasesEnter)
+                    .datum(d => d.values)
+                    .attr('d', avgLine);
+
+                let $thresholdCasesSelect = $groupCasesMerge.selectAll('.threshold.cases')
+                    .data(d => {
+                        let e = d.values().next().value;
+                        return [e, e];
+                    });
+
+                let $thresholdCasesEnter = $thresholdCasesSelect.enter().append('path')
+                    .attr('class', (d, i) => ('threshold cases threshold-' + i));
+
+                let $thresholdCasesMerge = $thresholdCasesSelect.merge($thresholdCasesEnter)
+                    .attr('d', (d, i) => {
+                        let y = i === 0 ? yScale(d.y0) : yScale(d.y1);
+                        return 'M' + (xScale.range()[0] - 50) + ',' + y + 'L' + (xScale.range()[1] + 10) + ',' + y;
+                    });
+
+                let $bgCasesSelect = $groupCasesMerge.selectAll('.bg')
+                    .data(d => {
+                        let e = d.values().next().value;
+                        return [e, e];
+                    });
+
+                let $bgCasesEnter = $bgCasesSelect.enter().append('rect')
+                    .attr('class', (d, i) => ('bg bg-' + i));
+
+                let $bgCasesMerge = $bgCasesSelect.merge($bgCasesEnter)
+                    .attr('height', 14)
+                    .attr('width', 50)
+                    .attr('transform', (d, i) => {
+                        let y = yScale(i === 0 ? d.y0 : d.y1);
+                        return 'translate(' + [-50, y - 16] + ')';
+                    });
+
+                let $tickCasesSelect = $groupCasesMerge.selectAll('.tick.cases')
+                    .data(d => {
+                        let e = d.values().next().value;
+                        return [e, e];
+                    });
+
+                let $tickCasesEnter = $tickCasesSelect.enter().append('text')
+                    .attr('class', 'tick cases');
+
+                let $tickCasesMerge = $tickCasesSelect.merge($tickCasesEnter)
+                    .attr('transform', (d, i) => ('translate(' + [-46, yScale(i === 0 ? d.y0 : d.y1) - 4] + ')'))
+                    .text((d, i) => formatCases(i === 0 ? d.y0 : d.y1));
+
+                let $labelCasesSelect = $groupCasesMerge.selectAll('.label.cases')
+                    .data(d => {
+                        let e = d.values().next().value;
+                        return [e];
+                    });
+
+                let $labelCasesEnter = $labelCasesSelect.enter().append('text')
+                    .attr('class', 'label cases');
+
+                let $labelCasesMerge = $labelCasesSelect.merge($labelCasesEnter)
+                    .attr('transform', d => ('translate(' + [d.y1 < 1e5 ? -5 : 2, yScale(d.y1) - 4] + ')'))
+                    .text('cases');
+
+                let $spanLineSelect = $groupCasesMerge.selectAll('.span-line')
+                    .data(d => {
+                        return d.values();
+                    });
+
+                let $spanLineEnter = $spanLineSelect.enter().append('path')
+                    .attr('class', d => ('span-line date-' + d.date_class));
+
+                let $spanLineMerge = $spanLineSelect.merge($spanLineEnter)
+                    .attr('d', d => {
+                        let y = yScale(d.y0);
+                        return 'M' + xScale(d.values[0].date) + ',' + y + 'L' + xScale(d.values[d.values.length - 1].date) + ',' + y;
+                    });
+
+                let $bgDateSelect = $groupCasesMerge.selectAll('.span-bg')
+                    .data(d => {
+                        return d.values();
+                    });
+
+                let $bgDateEnter = $bgDateSelect.enter().append('rect')
+                    .attr('class', d => ('span-bg date-' + d.date_class));
+
+                let $bgDateMerge = $bgDateSelect.merge($bgDateEnter)
+                    .attr('width', d => d.date_label.length * 6)
+                    .attr('height', 16)
+                    .attr('rx', 2)
+                    .attr('ry', 2)
+                    .attr('transform', d => {
+                        let y = yScale(d.y0),
+                            x0 = xScale(d.values[0].date),
+                            x1 = xScale(d.values[d.values.length - 1].date),
+                            x = x0 + (x1 - x0) / 2 - d.date_label.length * 3;
+                        return 'translate(' + [x , y + 1.5] + ')';
+                    });
+
+                let $spanDateSelect = $groupCasesMerge.selectAll('.span-date.cases')
+                    .data(d => {
+                        return d.values();
+                    });
+
+                let $spanDateEnter = $spanDateSelect.enter().append('text')
+                    .attr('dy', '0.7em')
+                    .attr('class', d => ('span-date date-' + d.date_class));
+
+                let $spanDateMerge = $spanDateSelect.merge($spanDateEnter)
+                    .attr('transform', d => {
+                        let y = yScale(d.y0),
+                            x0 = xScale(d.values[0].date),
+                            x1 = xScale(d.values[d.values.length - 1].date),
+                            x = x0 + (x1 - x0) / 2;
+                        return 'translate(' + [x , y + 5.5] + ')';
+                    })
+                    .text(d => d.date_label);
+
+                // ANNOTATION COMPONENTS
+
+                // From https://github.com/susielu/react-annotation/blob/master/src/components/Note/Note.js
+                const getOuterBBox = (...domNodes) => {
+                    return [...domNodes].reduce(
+                        (p, c) => {
+                            if (c) {
+                                const bbox = c.getBBox();
+                                p.x = Math.min(p.x, bbox.x);
+                                p.y = Math.min(p.y, bbox.y);
+                                p.width = Math.max(p.width, bbox.width);
+                                const yOffset = c && c.attributes && c.attributes.y;
+                                p.height = Math.max(p.height, ((yOffset && parseFloat(yOffset.value)) || 0) + bbox.height);
+                            }
+                            return p;
+                        },
+                        { x: 0, y: 0, width: 0, height: 0 }
+                    );
+                };
+
+                const leftRightDynamic = (align, y) => {
+                    if (!align || align === "dynamic" || align === "left" || align === "right") {
+                        if (y < 0) {
+                            align = "top";
+                        } else {
+                            align = "bottom";
+                        }
+                    }
+                    return align;
+                };
+
+                const topBottomDynamic = (align, x) => {
+                    if (!align || align === "dynamic" || align === "top" || align === "bottom") {
+                        if (x < 0) {
+                            align = "right";
+                        } else {
+                            align = "left";
+                        }
+                    }
+                    return align;
+                };
+
+                const orientationTopBottom = ["topBottom", "top", "bottom"];
+                const orientationLeftRight = ["leftRight", "left", "right"];
+
+                const alignment = ({
+                    padding = 0,
+                    bbox = { x: 0, y: 0, width: 0, height: 0 },
+                    align,
+                    orientation,
+                    offset = { x: 0, y: 0 }
+                }) => {
+                    let x = -bbox.x
+                    let y = -bbox.y
+                    if (orientationTopBottom.indexOf(orientation) !== -1) {
+                        align = topBottomDynamic(align, offset.x)
+                        if ((offset.y < 0 && orientation === "topBottom") || orientation === "top") {
+                            y -= bbox.height + padding;
+                        } else {
+                            y += padding;
+                        }
+
+                        if (align === "middle") {
+                            x -= bbox.width / 2;
+                        } else if (align === "right") {
+                            x -= bbox.width;
+                        }
+                    } else if (orientationLeftRight.indexOf(orientation) !== -1) {
+                        align = leftRightDynamic(align, offset.y)
+                        if ((offset.x < 0 && orientation === "leftRight") || orientation === "left") {
+                            x -= bbox.width + padding
+                        } else {
+                            x += padding
+                        }
+
+                        if (align === "middle") {
+                            y -= bbox.height / 2
+                        } else if (align === "top") {
+                            y -= bbox.height
+                        }
+                    }
+
+                    return { x, y };
+                };
+
+                const horizontalLine = ({ align, x = 0, y = 0, offset, bbox }) => {
+                    align = topBottomDynamic(align, offset.x);
+
+                    if (align === "right") {
+                        x -= bbox.width;
+                    } else if (align === "middle") {
+                        x -= bbox.width / 2;
+                    }
+
+                    const data = [[x, y], [x + bbox.width, y]]
+                    return data;
+                };
+
+                const elbowLine = ({
+                    dx,
+                    dy,
+                    radius,
+                    outerRadius,
+                    radiusPadding,
+                    width,
+                    height
+                }) => {
+                    let x1 = 0,
+                    x2 = dx,
+                    y1 = 0,
+                    y2 = dy;
+
+                    if (width && height) {
+                        if ((width > 0 && dx > 0) || (width < 0 && dx < 0)) {
+                            if (Math.abs(width) > Math.abs(dx)) {
+                                x1 = width / 2;
+                            } else {
+                                x1 = width;
+                            }
+                        }
+                        if ((height > 0 && dy > 0) || (height < 0 && dy < 0)) {
+                            if (Math.abs(height) > Math.abs(dy)){
+                                y1 = height / 2;
+                            } else {
+                                y1 = height;
+                            }
+                        }
+                        if (x1 === width / 2 && y1 === height / 2) {
+                            x1 = x2
+                            y1 = y2
+                        }
+                    }
+
+                    let data = [[x1, y1], [x2, y2]],
+                        diffY = y2 - y1,
+                        diffX = x2 - x1,
+                        xe = x2,
+                        ye = y2;
+
+                    let opposite = (y2 < y1 && x2 > x1) || (x2 < x1 && y2 > y1) ? -1 : 1
+
+                    if (Math.abs(diffX) < Math.abs(diffY)) {
+                        xe = x2;
+                        ye = y1 + diffX * opposite;
+                    } else {
+                        ye = y2;
+                        xe = x1 + diffY * opposite;
+                    }
+
+                    if (outerRadius || radius) {
+                        const r = (outerRadius || radius) + (radiusPadding || 0)
+                        const length = r / Math.sqrt(2)
+
+                        if (Math.abs(diffX) > length && Math.abs(diffY) > length) {
+                            x1 = length * (x2 < 0 ? -1 : 1);
+                            y1 = length * (y2 < 0 ? -1 : 1);
+                            data = [[x1, y1], [xe, ye], [x2, y2]];
+                        } else if (Math.abs(diffX) > Math.abs(diffY)) {
+                            const angle = Math.asin(-y2 / r);
+                            x1 = Math.abs(Math.cos(angle) * r) * (x2 < 0 ? -1 : 1);
+                            data = [[x1, y2], [x2, y2]];
+                        } else {
+                            const angle = Math.acos(x2 / r);
+                            y1 = Math.abs(Math.sin(angle) * r) * (y2 < 0 ? -1 : 1);
+                            data = [[x2, y1], [x2, y2]];
+                        }
+                    } else {
+                        data = [[x1, y1], [xe, ye], [x2, y2]]
+                    }
+                    return data;
+                };
+
+                let $annotSelect = $annotG.selectAll('.annotation')
+                    .data(annotations);
+
+                let $annotEnter = $annotSelect.enter().append('g')
+                    .attr('class', (d, i) => ('annotation ' + d.target.type + ' annotation-' + i));
+
+                $annotEnter.append('g').attr('class', 'annotation-connector')
+                    .append('path').attr('class', 'connector');
+                $annotEnter.append('g').attr('class', 'annotation-subject')
+                    .append('path').attr('class', 'subject');
+                let $annotNoteEnter = $annotEnter.append('g').attr('class', 'annotation-note');
+                $annotNoteEnter.append('path').attr('class', 'note-line');
+                let $annotContentEnter = $annotNoteEnter.append('g').attr('class', 'annotation-note-content');
+                $annotContentEnter.append('rect').attr('class', 'annotation-note-bg');
+                $annotContentEnter.append('text').attr('class', 'annotation-note-title')
+                    .append('tspan').attr('x', 0).attr('dy', '1.2em');
+                $annotContentEnter.append('text').attr('class', 'annotation-note-label')
+                    .attr('y', 16.5)
+                    .append('tspan').attr('x', 0).attr('dy', '1.2em');
+
+                let $annotMerge = $annotSelect.merge($annotEnter);
+
+                let $annotTitleSelect = $annotMerge.select('.annotation-note .annotation-note-title tspan')
+                    .selectAll('tspan')
+                    .data(d => d.note.title);
+                let $annotTitleEnter = $annotTitleSelect.enter().append('tspan');
+                $annotTitleSelect.merge($annotTitleEnter)
+                    .attr('x', 0).attr('dy', '1.2em')
+                    .text(d => d);
+                let $annotLabelSelect = $annotMerge.select('.annotation-note .annotation-note-label tspan')
+                    .selectAll('tspan')
+                    .data(d => d.note.label);
+                let $annotLabelEnter = $annotLabelSelect.enter().append('tspan');
+                $annotLabelSelect.merge($annotLabelEnter)
+                    .attr('x', 0).attr('dy', '1.2em')    
+                    .text(d => d);
+
+                // Compute all these parameters here
+                $annotMerge.each(function(d, i) {
+                    let $annot = d3.select(this);
+                    d.index = i;
+                    // Get bbox of the note text
+                    d.note.bbox = getOuterBBox($annot.select('.annotation-note-title').node(), $annot.select('.annotation-note-label').node());
+                    d.note.align = 'dynamic';
+                    d.note.orientation = 'topBottom';
+                    d.note.offset = {x: d.dx, y: d.dy};
+                    d.note.padding = 5;
+
+                    d.target.dates = d.target.values.map(t => parseDate(t));
+                    let iValues = d.target.dates.map(x => Math.ceil(indexScale(x))),
+                        dValues = iValues.map(i => data[i]);
+                    d.target.data = data.slice(iValues[0], iValues[1] + 1);
+                    let yValues = d.target.data.map(dd => yScale(dd.cases_avg));
+                    let l = xScale(dValues[0].date), r = xScale(dValues[1].date),
+                        t = Math.min(...yValues), b = Math.max(...yValues);
+                    d.target.height = Math.max(b - t, 10);  
+                    d.target.width = Math.max(r - l, 10);
+                    d.target.y = t;
+                    d.target.x = l;
+
+                    d.translate = [xScale(dValues[1].date), yScale(dValues[1].cases_avg)];
+
+                    let { x, y } = alignment(d.note);
+                    d.note.dx = x;
+                    d.note.dy = y;
+
+                    console.log(d);
+
+                    let cd = elbowLine(d),
+                        nd = horizontalLine(d.note);
+                    d.connectorPath = 'M' + cd.join('L');
+                    
+                    d.subjectPath = '';
+                    d.note.notePath = 'M' + nd.join('L');
+                    d.note.width = d.note.bbox.width;
+                    d.note.height = d.note.bbox.height;
+
+                });
+
+
+                $annotMerge.attr('transform', d => ('translate(' + d.translate + ')'));
+                $annotMerge.select('.annotation-connector .connector')
+                    .attr('d', d => d.connectorPath);
+                $annotMerge.select('.annotation-subject .subject')
+                    .attr('d', d => d.subjectPath);
+                $annotMerge.select('.annotation-note')
+                    .attr('transform', d => ('translate(' + [d.dx, d.dy] + ')'));
+                $annotMerge.select('.annotation-note .note-line')
+                    .attr('d', d => d.note.notePath);
+                $annotMerge.select('.annotation-note .annotation-note-content')
+                    .attr('transform', d => ('translate(' + [d.note.dx, d.note.dy] + ')'));
+                $annotMerge.select('.annotation-note .annotation-note-bg')
+                    .attr('width', d => d.note.width)
+                    .attr('height', d => d.note.height);
+
+                // HIGHLIGHTED MARKS
+                let $groupAnnotSelect = $markG.selectAll('.annotation-group.cases')
+                    .data(annotations);
+
+                let $groupAnnotEnter = $groupAnnotSelect.enter().append('g')
+                    .attr('class', (d, i) => ('annotation-group cases ' + d.target.type + ' annotation-' + i));
+
+                let $groupAnnotMerge = $groupAnnotSelect.merge($groupAnnotEnter);
+
+                let $areaAnnotSelect = $groupAnnotMerge.selectAll('.area.cases')
+                    .data(d => [d.target.data]);
+
+                let $areaAnnotEnter = $areaAnnotSelect.enter().append('path')
+                    .attr('class', 'area cases');
+
+                let $areaAnnotMerge = $areaAnnotSelect.merge($areaAnnotEnter)
+                    .datum(d => d)
+                    .attr('d', avgArea);
+
+                let $lineAnnotSelect = $groupAnnotMerge.selectAll('.line.cases')
+                    .data(d => [d.target.data]);
+
+                let $lineAnnotEnter = $lineAnnotSelect.enter().append('path')
+                    .attr('class', 'line cases');
+
+                let $lineAnnotMerge = $lineAnnotSelect.merge($lineAnnotEnter)
+                    .datum(d => d)
+                    .attr('d', avgLine);
+
+
+                // GHOST COMPONENTS
+
+                let $monthContainer = $ghostG.append('g')
+                    .attr('class', 'month-ghost-container')
+                    .attr('aria-label', 'Interactive x axis, average COVID cases grouped by month from ' + formatDateMonth(xExtent[0]) + ' to ' + formatDateMonth(xExtent[1]) + '. ' + dataByMonth.length + ' groups available.')
+                    .attr('aria-hidden', 'false')
+                    .attr('tabindex', '-1')
+                    .on('focus', function(event, d) {
+                        console.log('X axis has focus!!');
+                    });
+
+                navGroups[1].node = $monthContainer.node();
+                navGroups[1].dataTable = dataByMonth;
+                navGroups[1].getClass = (value) => ('.month-ghost.date-' + formatDateClass(value.date));
+                navGroups[1].getSubTable = (value) => (value.values);
+
+                let $casesContainer = $ghostG.append('g')
+                    .attr('class', 'cases-ghost-container')
+                    .attr('aria-label', 'Interactive y axis, daily average COVID cases grouped by 50,000 increments from 0 to 850,000 cases. ' + dataByCases.length + ' groups available.')
+                    .attr('aria-hidden', 'false')
+                    .attr('tabindex', '-1')
+                    .on('focus', function(event, d) {
+                        console.log('Y axis has focus!!');
+                    });
+
+                navGroups[2].node = $casesContainer.node();
+                navGroups[2].dataTable = dataByCases;
+                navGroups[2].getClass = (value) => ('.cases-ghost.group-' + value.values().next().value.y0);
+                navGroups[2].getSubTable = (value) => Array.prototype.concat(...[...value.values()].map(v => v.values))
+
+                let $casesSelect = $casesContainer.selectAll('.cases-ghost.cases')
+                    .data(dataByCases);
+                
+                let $casesEnter = $casesSelect.enter().append('g')
+                    .attr('class', d => ('cases-ghost group-' + d.values().next().value.y0))
+                    .attr('aria-hidden', 'false')
+                    .attr('tabindex', '-1');
+
+                $casesEnter.append('rect')
+                    .attr('height', yScale(0) - yScale(5e4))
+                    .attr('width', 100)
+                    .attr('transform', d => {
+                        let e = d.values().next().value;
+                        return 'translate(-100,'+ yScale(e.y1) + ')';
+                    });
+
+
+                let $casesMerge = $casesSelect.merge($casesEnter)
+                    .attr('aria-label', (d, i) => {
+                        let values = [...d.values()],
+                            first = values[0];
+                        return formatCases(first.y0) + ' to ' + formatCases(first.y1) +' average cases occured ' + values.map(v => v.date_aria).join('. and') + '. ' + (i + 1) + ' of ' + dataByCases.length + ' groups.';
+                    })
+                    .on('focus', function(event, d) {
+                        let values = Array.prototype.concat(...[...d.values()].map(v => v.values));
+                        $markG.selectAll('.cases-group.highlight,.month-group.highlight,.annotation-group.highlight').classed('highlight', false);
+                        $annotG.selectAll('.annotation.highlight').classed('highlight', false);
+                        $ghostG.selectAll('.annotation-ghost.highlight').classed('highlight', false);
+                        $markG.selectAll('.cases.all-time').classed('fade', true);
+
+                        let classCases = '.cases-group.group-' + d.values().next().value.y0;
+                        let $casesGroup = $markG.selectAll(classCases);
+
+                        $casesGroup.classed('highlight', true);
+
+                        console.log(values);
+
+                        if (isPlaying) togglePlay();
+                        dataToSonify = values;
+                        currentSonifyIndex = 0;
+                        
+                        
+                        if (!navigateBy.startsWith('d')) {
+                            $dataTip.style('visibility', 'hidden');
+                            $tooltipContainer.style('visibility', 'hidden');
+                        }
+                    })
+                    .on('mouseover', function(event, d) {
+                        this.focus();
+                    });
+
+                let $monthSelect = $monthContainer.selectAll('.month-ghost')
+                    .data(dataByMonth);
+                
+                let $monthEnter = $monthSelect.enter().append('g')
+                    .attr('class', d => ('month-ghost date-'+ formatDateClass(d.date)))
+                    .attr('aria-hidden', 'false')
+                    .attr('tabindex', '-1');
+
+                $monthEnter.append('rect')
+                    .attr('height', 60)
+                    .attr('width', d => (xScale(d.values[d.values.length - 1].date) - xScale(d.values[0].date)))
+                    .attr('transform', d => ('translate('+ [xScale(d.date), yScale.range()[0]] + ')'));
+
+                let $monthMerge = $monthSelect.merge($monthEnter)
+                    .attr('aria-label', (d, i) => {
+                        return formatDateMonth(d.date) + ' average of ' + formatCases(d.mean_cases) + ' cases. ' + (i + 1) + ' of ' + dataByMonth.length + ' groups.';
+                    })
+                    .on('focus', function(event, d) {
+                        $markG.selectAll('.cases-group.highlight,.month-group.highlight,.annotation-group.highlight').classed('highlight', false);
+                        $annotG.selectAll('.annotation.highlight').classed('highlight', false);
+                        $ghostG.selectAll('.annotation-ghost.highlight').classed('highlight', false);
+                        $markG.selectAll('.cases.all-time').classed('fade', true);
+
+                        let classMonth = '.month-group.date-' + formatDateClass(d.date);
+                        let $monthGroup = $markG.selectAll(classMonth);
+                        $monthGroup.classed('highlight', true);
+
+                        if (isPlaying) togglePlay();
+                        dataToSonify = d.values;
+                        currentSonifyIndex = 0;
+
+                        if (!navigateBy.startsWith('d')) {
+                            $dataTip.style('visibility', 'hidden');
+                            $tooltipContainer.style('visibility', 'hidden');
+                        }
+                    })
+                    .on('mouseover', function(event, d) {
+                        this.focus();
+                    });
+
+                let $barContainer = $ghostG.append('g')
+                    .attr('class', 'bar-ghost-container')
+                    .attr('aria-label', 'Interactive data points of this chart.')
+                    .attr('aria-hidden', 'false')
+                    .attr('tabindex', '-1')
+                    .on('focus', function(event, d) {
+                        console.log('Bar has focus!!');
+                    });
+                    
+                let $barSelect = $barContainer.selectAll('.bar.cases')
+                    .data(data);
+
+                let $barEnter = $barSelect.enter().append('rect')
+                    .attr('class', d => ('bar cases date-' + formatDateClass(d.date)))
+                    .attr('aria-hidden', 'false')
+                    .attr('tabindex', '-1');
+
+                    // Change first and last day of month aria-label
+                let $barMerge = $barSelect.merge($barEnter)
+                    .attr('width', barWidth)
+                    .attr('height', d => barHeight)
+                    .attr('y', 0)
+                    .attr('x', d => xScale(d.date) - barWidth / 2)
+                    .attr('aria-label', d => {
+                        // If first of month, give full date
+                        if (d.date.getDate() === 1) {
+                            return formatDateLong(d.date) + ' ' + formatCases(d.cases_avg) + ' average cases.';
+                        } else {
+                            return formatCases(d.cases_avg) + ' average cases. ' + formatDateShort(d.date) + '.';
+                        }
+                    })
+                    .on('focus', function(event, d) {
+                        $dataTip.style('visibility', 'visible')
+                            .attr('transform', 'translate(' + [xScale(d.date), yScale(d.cases_avg)] + ')');
+                        $dataTip.select('path').attr('d', 'M0,0v'+ (barHeight - yScale(d.cases_avg)));
+
+                        $tooltip.style('transform', 'translate(' + tooltipScale(d.date) + '%, 0px)');
+                        $tooltipContainer.style('visibility', 'visible')
+                            .style('left', (xScale(d.date) + margin.l)+'px')
+                            .style('top', (yScale(d.cases_avg) + margin.t)+'px');
+                        $tooltipDate.text(formatDate(d.date));
+                        $tooltipAvg.text('Daily average: ' + formatCases(d.cases_avg));
+                        $tooltipCases.text('New cases: ' + formatCases(d.cases));
+                        if (navigateBy === 'g' || navigateBy === '') {
+                            $markG.selectAll('.cases-group.highlight,.month-group.highlight,.annotation-group.highlight').classed('highlight', false);
+                            $annotG.selectAll('.annotation.highlight').classed('highlight', false);
+                            $ghostG.selectAll('.annotation-ghost.highlight').classed('highlight', false);
+                            $markG.selectAll('.cases.all-time').classed('fade', false);
+                        }
+                    })
+                    .on('mouseover', function(event, d) {
+                        this.focus();
+                    });
+
+                let $annotContainer = $ghostG.append('g')
+                    .attr('class', 'annotation-ghost-container')
+                    .attr('aria-label', 'Interactive insights about this chart. ' + annotations.length + ' groups available.')
+                    .attr('aria-hidden', 'false')
+                    .attr('tabindex', '-1')
+                    .on('focus', function(event, d) {
+                        console.log('Annotation has focus!!');
+                    });
+
+                navGroups[0].node = $annotContainer.node();
+                navGroups[0].dataTable = annotations;
+                navGroups[0].getClass = (value, index) => ('.annotation-ghost.annotation-' + index);
+                navGroups[0].getSubTable = (value) => (value.target.data);
+                
+                let $annotGhostSelect = $annotContainer.selectAll('.annotation-ghost')
+                    .data(annotations);
+                
+                let $annotGhostEnter = $annotGhostSelect.enter().append('g')
+                    .attr('class', d => ('annotation-ghost annotation-' + d.index + ' ' + d.target.type))
+                    .attr('aria-hidden', 'false')
+                    .attr('tabindex', '-1')
+                    .attr('transform', d=> ('translate('+ [xScale.range()[1] - (annotations.length - d.index - 1) * 30, -20] + ')'))
+
+                $annotGhostEnter.append('circle')
+                    .attr('r', 10);
+
+                $annotGhostEnter.append('text')
+                    .style('text-anchor', 'middle')
+                    .attr('dy', '0.3em')
+                    .text((d, i) => (i + 1));
+
+                $annotGhostEnter.append('rect')
+                    .attr('width', 30)
+                    .attr('height', 30)
+                    .attr('x', -15)
+                    .attr('y', -15);
+
+                let $annotGhostMerge = $annotGhostSelect.merge($annotGhostEnter)
+                    .attr('aria-label', (d, i) => {
+                        // Consolidate the description? Should this add specific dates and info?
+                        return d.note.title.join(' ') + '. ' + d.note.label.join(' ') + '. ' + (i + 1) + ' of ' + annotations.length + ' groups.';
+                    })
+                    .on('focus', function(event, d) {
+                        $markG.selectAll('.cases-group.highlight,.month-group.highlight,.annotation-group.highlight').classed('highlight', false);
+                        $annotG.selectAll('.annotation.highlight').classed('highlight', false);
+                        $ghostG.selectAll('.annotation-ghost.highlight').classed('highlight', false);
+                        $markG.selectAll('.cases.all-time').classed('fade', true);
+
+                        let $annotGhost = $ghostG.selectAll('.annotation-ghost.annotation-' + d.index);
+                        $annotGhost.classed('highlight', true);
+                        let $annotGroup = $markG.selectAll('.annotation-group.annotation-' + d.index);
+                        $annotGroup.classed('highlight', true);
+                        let $annotElement = $annotG.selectAll('.annotation.annotation-' + d.index);
+                        $annotElement.classed('highlight', true);
+
+                        if (isPlaying) togglePlay();
+                        dataToSonify = d.target.data;
+                        currentSonifyIndex = 0;
+
+                        if (!navigateBy.startsWith('d')) {
+                            $dataTip.style('visibility', 'hidden');
+                            $tooltipContainer.style('visibility', 'hidden');
+                        }
+                    })
+                    .on('mouseover', function(event, d) {
+                        this.focus();
+                    });
+
+                const clampLoop = (i, length) => {
+                    return i >= length ? 0 : (i < 0 ? length - 1 : i); 
+                }
+
+                $chartContainer.on('keydown', function(event) {
+                    
+                    // let date = indexScale.invert(currIndex[0]),
+                    //     month = date.getMonth(),
+                    //     year = date.getFullYear();
+                    
+                    switch(event.keyCode) {
+                        // Arrow Right & Arrow Up
+                        case 39: case 38:
+                            if (navigateBy.startsWith('d')) {
+                                currGroup.currIndex[1]++;
+                            } else if (navigateBy === 'g') {
+                                currGroup = navGroups[clampLoop(currGroup.index + 1, navGroups.length)];
+                            } else {
+                                currGroup.currIndex[0]++;
+                            }
+                            break;
+                        // Arrow Left & Arrow Down
+                        case 37: case 40:
+                            if (navigateBy.startsWith('d')) {
+                                currGroup.currIndex[1]--;
+                            } else if (navigateBy === 'g') {
+                                currGroup = navGroups[clampLoop(currGroup.index - 1, navGroups.length)];
+                            } else {
+                                currGroup.currIndex[0]--;
+                            }
+                            break;
+                        // Enter
+                        case 13:
+                            if(event.shiftKey) {
+                                togglePlay();
+                            } else {
+                                if (navigateBy.startsWith('d')) {
+                                    
+                                } else if (navigateBy === 'g') {
+                                    navigateBy = currGroup.type;
+                                } else if (navigateBy === '') {
+                                    navigateBy = 'g';
+                                } else {
+                                    navigateBy = 'd' + currGroup.type;
+                                    currGroup.currIndex[1] = 0;
+                                }
+                            }
+                            
+                            break;
+                        // Esc
+                        case 27:
+                            if (navigateBy.startsWith('d')) {
+                                navigateBy = currGroup.type;
+                                currGroup.currIndex[1] = -1;
+                            } else if (navigateBy === 'g') {
+                                navigateBy = '';
+                            } else if (navigateBy === '') {
+
+                            } else {
+                                navigateBy = 'g';
+                            }
+                            if (isPlaying) togglePlay();
+                            break;
+                    }
+
+                    if ((event.keyCode >= 37 && event.keyCode <= 40) || event.keyCode === 13 || event.keyCode === 27) {
+                        event.preventDefault();
+                        let nav = navigateBy.startsWith('d') ? navigateBy.slice(1) : navigateBy;
+                        
+                        if (navigateBy === '') {
+                            $chartContainer.node().focus();
+                        } else if (navigateBy === 'g') {
+                            currGroup.node.focus();
+
+                            // Clear any previous selections
+                            $markG.selectAll('.cases-group.highlight,.month-group.highlight,.annotation-group.highlight').classed('highlight', false);
+                            $annotG.selectAll('.annotation.highlight').classed('highlight', false);
+                            $ghostG.selectAll('.annotation-ghost.highlight').classed('highlight', false);
+                            $markG.selectAll('.cases.all-time').classed('fade', false);
+                            $dataTip.style('visibility', 'hidden');4
+                            $tooltipContainer.style('visibility', 'hidden');
+                        } else {
+                            let { currIndex, dataTable } = currGroup;
+                            
+                            currIndex[0] = clampLoop(currIndex[0], dataTable.length);
+                            let value = dataTable[currIndex[0]];
+                            let selectClass = currGroup.getClass(value, currIndex[0]);
+
+                            if (navigateBy.startsWith('d')) {
+                                let subTable = currGroup.getSubTable(value);
+
+                                // When at the end or beginning - jump to the next grouping
+                                if (currIndex[1] < 0 || currIndex[1] >= subTable.length) {
+                                    currIndex[0] = currIndex[1] < 0 ? currIndex[0] - 1 : currIndex[0] + 1;
+                                    currIndex[0] = clampLoop(currIndex[0], dataTable.length);
+                                    
+                                    value = dataTable[currIndex[0]];
+                                    selectClass = currGroup.getClass(value, currIndex[0]);
+                                    subTable = currGroup.getSubTable(value);
+
+                                    let extraFocus = d3.select(selectClass).node();
+                                    if(extraFocus) {
+                                        extraFocus.focus();
+                                    }
+                                    currIndex[1] = currIndex[1] < 0 ? subTable.length - 1 : 0;
+                                }
+                                
+                                let subValue = subTable[currIndex[1]];
+                                selectClass = '.bar.cases.date-' + formatDateClass(subValue.date);
+                            }
+                            let toFocus = d3.select(selectClass).node();
+
+                            if (toFocus) {
+                                toFocus.focus();
+                            }
+                        }
+                    }
+                });
+
+                let $xLabelSelect = $axesG.selectAll('.axis-label.axis-label-x')
+                    .data(['Days from pandemic start →']);
+
+                let $xLabelEnter = $xLabelSelect.enter().append('text')
+                    .attr('class', 'axis-label axis-label-x');
+
+                let $xLabelMerge = $xLabelSelect.merge($xLabelEnter)
+                    .attr('transform', 'translate(' + [xScale.range()[1], yScale.range()[0] + 28] + ')')
+                    .attr('dy', '0.7em')
+                    .style('text-anchor', 'end')
+                    .text(t => t);
+
+                let $xAxisSelect = $axesG.selectAll('.axis.axis-x')
+                    .data(['bottom']);
+
+                let $xAxisEnter = $xAxisSelect.enter().append('g')
+                    .attr('class', 'axis axis-x axis-temporal');
+
+                let $xAxisMerge = $xAxisSelect.merge($xAxisEnter)
+                    .attr('transform', 'translate(' + [0, barHeight] + ')')
+                    .call(xAxis)
+                    .call(g => g.select('.domain').remove());
+
+                let $yLabelSelect = $axesG.selectAll('.axis-label.axis-label-y')
+                    .data(['Reported cases as 7-day average ↑']);
+
+                let $yLabelEnter = $yLabelSelect.enter().append('text')
+                    .attr('class', 'axis-label axis-label-y');
+
+                let $yLabelMerge = $yLabelSelect.merge($yLabelEnter)
+                    .attr('transform', 'translate(' + [-46.5, -46] + ')')
+                    .attr('dy', '0.7em')
+                    .style('text-anchor', 'start')
+                    .text(t => t);
+
+                let $yAxisSelect = $axesG.selectAll('.axis.axis-y')
+                    .data(['left']);
+
+                let $yAxisEnter = $yAxisSelect.enter().append('g')
+                    .attr('class', 'axis axis-y axis-quantitative');
+
+                let $yAxisMerge = $yAxisSelect.merge($yAxisEnter)
+                    .attr('transform', 'translate(' + [-50, 0] + ')')
+                    .call(yAxis)
+                    .call(g => {
+                        g.select('.domain').remove();
+                        g.selectAll('.tick text').attr('x', 4).attr('dy', -4);
+                        // TODO fix this and make it more robust
+                        g.selectAll('.tick:nth-of-type(9) text').text(t => '800,000 cases');
+                    });
+
+                let $aLabelSelect = $axesG.selectAll('.axis-label.axis-label-a')
+                    .data(['Annotated Insights']);
+
+                let $aLabelEnter = $aLabelSelect.enter().append('text')
+                    .attr('class', 'axis-label axis-label-a');
+
+                let $aLabelMerge = $aLabelSelect.merge($aLabelEnter)
+                    .attr('transform', 'translate(' + [xScale.range()[1] - 398, -46] + ')')
+                    .attr('dy', '0.7em')
+                    .style('text-anchor', 'start')
+                    .text(t => t);
+
+            };
+
+            const handleResize = () => {
+
+            }
+
+            d3.csv("https://raw.githubusercontent.com/nytimes/covid-19-data/master/rolling-averages/us.csv", (d) => {
+                return ({
+                    'date': parseDate(d.date),
+                    'geoid': d.geoid,
+                    'cases': Math.abs(+d.cases),
+                    'cases_avg': Math.abs(+d.cases_avg),
+                    'cases_avg_per_100k': Math.abs(+d.cases_avg_per_100k),
+                    'deaths': Math.abs(+d.deaths),
+                    'deaths_avg': Math.abs(+d.deaths_avg),
+                    'deaths_avg_per_100k': Math.abs(+d.deaths_avg_per_100k),
+                })
+            }).then(drawChart);
+
+            window.addEventListener('resize', handleResize);
+            
+        </script>
+    </body>
+</html>

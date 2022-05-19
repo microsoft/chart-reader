@@ -1,0 +1,336 @@
+svg {
+    --g-color-hard-grey: #262626;
+    --g-color-soft-grey: #4c4c4c;
+    --g-color-small-type: #737373;
+    --g-color-light-grey: #aaa;
+    --g-color-annot-font: #262626;
+    --g-color-annot-accent: #737373;
+}
+
+.axis-y .tick:not(:first-of-type) line {
+    stroke-opacity: 0.5;
+    stroke-dasharray: 2, 2;
+}
+
+.axis-x .tick:nth-of-type(3n + 1) text,
+.axis-x .tick:nth-of-type(3n + 2) text {
+    visibility: hidden;
+}
+
+.axis .tick text {
+    color: var(--g-color-small-type);
+}
+
+.axis .tick line {
+    stroke: var(--g-color-light-grey);
+}
+
+.axis-label {
+    fill: var(--g-color-small-type);
+    font-size: 12px;
+}
+
+.area {
+    stroke: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.annotation-group {
+    opacity: 0;
+}
+
+.annotation-group.highlight {
+    opacity: 1;
+}
+
+.annotation-ghost {
+    opacity: 1;
+}
+
+.annotation-ghost circle {
+    fill: #fff;
+    stroke: var(--g-color-annot-accent);
+    stroke-width: 1px;
+}
+
+.annotation-ghost rect {
+    fill: #fff;
+    opacity: 0.0001;
+}
+
+.annotation-ghost text {
+    font-family: var(--frank);
+    font-size: 10px;
+    font-weight: bold;
+    fill: var(--g-color-annot-accent);
+}
+
+.annotation-ghost.highlight circle {
+    stroke: var(--g-color-annot-font);
+    stroke-width: 2px;
+}
+
+.annotation-ghost.highlight text {
+    fill: var(--g-color-annot-font);
+}
+
+.x-ghost:focus,
+.x-ghost:focus-visible,
+.y-ghost:focus,
+.y-ghost:focus-visible,
+.annotation-ghost:focus,
+.annotation-ghost:focus-visible {
+    outline: none;
+}
+
+.line {
+    stroke-width: 2px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+}
+
+.bar {
+    fill-opacity: 0.001;
+}
+
+.bar:focus,
+.bar:focus-visible {
+    outline: none;
+}
+
+.y-group {
+    opacity: 0;
+}
+
+.y-group.highlight {
+    opacity: 1;
+}
+
+.y-group .bg {
+    fill: rgba(255, 255, 255, 1);
+}
+
+.y-group .tick {
+    font-weight: 700;
+    letter-spacing: 0;
+    font-family: var(--frank);
+    font-size: 12px;
+    text-anchor: start;
+    color: var(--g-color-small-type);
+}
+
+.y-group .label {
+    font-weight: 500;
+    letter-spacing: 0;
+    font-family: var(--frank);
+    font-size: 10px;
+    text-anchor: start;
+}
+
+.threshold {
+    stroke: var(--g-color-soft-grey);
+    stroke-width: 2px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+}
+
+.y-group .threshold.threshold-0,
+.y-group .threshold.threshold-1 {
+    stroke: var(--g-color-light-grey);
+}
+
+.y-group .span-line {
+    stroke: var(--g-color-soft-grey);
+    stroke-width: 3px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+}
+
+.y-group .span-date {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: uppercase;
+    color: #454545;
+    text-anchor: middle;
+}
+
+.y-group .span-bg {
+    fill: rgba(255, 255, 255, 0.9);
+}
+
+.x-group {
+    opacity: 0;
+}
+
+.x-group.highlight {
+    opacity: 1;
+}
+
+.x-group .text-value {
+    font-weight: 700;
+    letter-spacing: 0;
+    font-family: var(--frank);
+    font-size: 15px;
+    line-height: 20px;
+    text-anchor: end;
+}
+
+.x-group .text-label {
+    font-weight: 500;
+    letter-spacing: 0;
+    font-family: var(--frank);
+    font-size: 10px;
+    text-anchor: end;
+}
+
+.x-group .bg {
+    fill: rgba(255, 255, 255, 0.7);
+}
+
+.x-group .x-group-label {
+    font-size: 14px;
+    line-height: 18px;
+    text-anchor: middle;
+}
+
+.x-group .year-label {
+    font-size: 10px;
+    line-height: 18px;
+    text-anchor: middle;
+}
+
+.x-ghost,
+.y-ghost {
+    opacity: 0.001;
+}
+
+.annotation {
+    opacity: 0;
+}
+
+.annotation.highlight {
+    opacity: 1;
+}
+
+.annotation-connector .connector {
+    fill: none;
+    stroke: var(--g-color-annot-accent);
+}
+
+.annotation-subject .subject {
+    fill: none;
+    stroke: var(--g-color-annot-accent);
+}
+
+.annotation-note text {
+    fill: var(--g-color-annot-font);
+    font-size: 12px;
+}
+
+.annotation-note .annotation-note-title {
+    font-weight: bold;
+}
+
+.annotation-note .note-line {
+    fill: none;
+    stroke: var(--g-color-annot-accent);
+}
+
+.annotation-note .annotation-note-bg {
+    fill: rgba(255, 255, 255, 0.7);
+}
+
+.data-tip path {
+    stroke: #aaa;
+    stroke-width: 1px;
+    fill: none;
+}
+
+.data-tip circle {
+    stroke: none;
+}
+
+.tooltip-container::after {
+    content: '';
+    position: absolute;
+    bottom: 11px;
+    left: -10px;
+    width: 0;
+    height: 0;
+    border-top: solid 10px white;
+    border-left: solid 10px transparent;
+    border-right: solid 10px transparent;
+}
+
+.tooltip-container {
+    position: absolute;
+    width: 0;
+    height: 0;
+    z-index: 899;
+    pointer-events: none;
+}
+
+.tooltip-inner {
+    display: block;
+    min-width: 100px;
+    height: 100%;
+    padding: 12px 15px 9px;
+    white-space: nowrap;
+}
+
+.tooltip-inner span {
+    display: block;
+}
+
+.tooltip-inner .tooltip-date {
+    font-size: 10px;
+    line-height: 10px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-bottom: 1px rgba(0, 0, 0, 0.15) solid;
+    margin-bottom: 6px;
+    padding-bottom: 7px;
+    color: #454545;
+}
+
+.tooltip-inner .tooltip-value {
+    font-weight: 700;
+    letter-spacing: 0;
+}
+
+.tooltip {
+    box-sizing: border-box;
+    background-color: #fff;
+    border-radius: 3px;
+    box-shadow: 0 2px 6px #00000026;
+    pointer-events: none;
+    position: absolute;
+    font-family: var(--frank);
+    letter-spacing: 0.025em;
+    font-size: 15px;
+    line-height: 20px;
+    display: inline-block;
+    left: 0;
+    bottom: 20px;
+}
+
+.chart-sr-desc-container {
+    position: relative;
+}
+
+.chart-sr-desc-wrapper {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    white-space: nowrap;
+    clip: rect(1px, 1px, 1px, 1px);
+    margin-top: -3px;
+    opacity: 0.01;
+}
