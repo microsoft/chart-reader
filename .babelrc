@@ -1,0 +1,19 @@
+{
+    "presets": [
+        [
+            "@babel/preset-env",
+            {
+                "targets": ">0.25%"
+            }
+        ],
+        "@babel/preset-typescript"
+    ],
+    "plugins": [
+        [
+            "@babel/plugin-transform-runtime",
+            {
+                "regenerator": true
+            }
+        ]
+    ]
+}
