@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import * as d3 from 'd3';
 
 import { getOuterBBox, alignment, elbowLine, horizontalLine } from './annot';
@@ -12,7 +15,6 @@ import {
 import { Sonifier } from './sonify';
 import { ChartConfig, DimensionConfig, DataConfig, MarginConfig } from './core';
 import { NavigationController } from './navigation-controller';
-import { thresholdFreedmanDiaconis } from 'd3';
 
 class BarChart {
     private _data: any;

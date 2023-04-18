@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import * as d3 from 'd3';
 
 import { getOuterBBox, alignment, elbowLine, horizontalLine } from './annot';

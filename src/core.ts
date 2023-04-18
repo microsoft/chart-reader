@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 interface ChartConfig {
     description: { title: string; caption: string };
     x: AxisConfig;

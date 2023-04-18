@@ -1,4 +1,7 @@
-// From https://github.com/susielu/react-annotation/blob/master/src/components/Note/Note.js
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
+// Code updated from https://github.com/susielu/react-annotation/blob/master/src/components/Note/Note.js
 
 /**
  * AnnotationAlignment value for the annotation in relation to target
