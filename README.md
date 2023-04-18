@@ -1,10 +1,13 @@
 # Chart Reader
+
 Web-accessibility engine for rendering accessible, interactive charts optimized for screen reader users.
 
-# Source Code
+## Source Code
+
 Resides in the `./src/` directory. This engine is built from source code using `npm` or `yarn`. The build outputs to `./build/` as bundled `*.js` file.
 
 ## Install and Build
+
 This repository requires the [yarn](https://classic.yarnpkg.com/en/docs/install) package manager.
 
 
@@ -12,6 +15,10 @@ Then install the package dependencies and build the Chart Reader engine:
 
 1. `yarn install`
 2. `yarn run build` builds to `./build/` as bundled `*.js` file.
+
+## Dependencies
+
+Chart Reader is created with open source libraries, using [d3](https://github.com/d3/d3) for data binding and [susielu/react-annotation](https://github.com/susielu/react-annotation) for annotation layout.
 
 ## Contributing
 
