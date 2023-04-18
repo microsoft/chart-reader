@@ -18,7 +18,7 @@ Then install the package dependencies and build the Chart Reader engine:
 
 ## Dependencies
 
-Chart Reader is created with open source libraries, using [d3](https://github.com/d3/d3) for data binding and [susielu/react-annotation](https://github.com/susielu/react-annotation) for annotation layout.
+Chart Reader is created with open source libraries, using [d3](https://github.com/d3/d3) for data binding and a modified version of [susielu/react-annotation](https://github.com/susielu/react-annotation) for annotation layout.
 
 ## Contributing
 
