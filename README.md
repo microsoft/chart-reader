@@ -42,7 +42,7 @@ Four fields are necessary for Chart Reader to provide a screen reader experience
 3. ``target`` - the data targeted by the insight, specified by the axis and values under selection
 ```json
     {
-        target: {axis: "x", values: ["2020-03-01", "2020-04-10"], series: ["Seattle"]}
+        "target": {"axis": "x", "values": ["2020-03-01", "2020-04-10"], "series": ["Seattle"]}
     }
 ```
 
