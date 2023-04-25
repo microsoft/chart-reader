@@ -20,6 +20,30 @@ Then install the package dependencies and build the Chart Reader engine:
 
 Chart Reader is created with open source libraries, using [d3](https://github.com/d3/d3) for data binding and a modified version of [susielu/react-annotation](https://github.com/susielu/react-annotation) for annotation layout.
 
+## How to use
+
+Chart Reader is an accessibility engine that renders an SVG chart to a web page using __three inputs:__
+
+1. __a data file__ in CSV format 
+2. __an insights list__ in JSON format
+3. __a Chart Reader configuration__ in JSON format
+
+The __data file__ and __insights list__ describe the content of the accessible chart, while the __Chart Reader configuration__ declares how the chart renders the accessible experience.
+
+### Data File Input
+In the data file, Chart Reader supports the following data fields: ``number``, ``string``, ``datetime``, ``date``, ``time``.
+The engine expects data to be complete and tidy: it does not support missing values.
+
+### Insights List
+The insights JSON structure builds on the [d3-annotation spec](https://react-annotation.susielu.com/).
+Four fields are necessary for Chart Reader to provide a screen reader experience: 
+1. `title` - textual description to be read first. Should summarize the insight as a headline.
+2. ``label`` - textual description read second. Should detail the insight, follow a similar format and structure to other insights of the same ``type``
+3. ``target`` - the data targeted by the insight, specified by the axis and values under selection
+    {target: {axis: "x", values: ["2020-03-01", "2020-04-10"], series: ["Seattle"]}, ...}
+4. ``type`` - describes how the insight should be grouped (e.g., "Summary", "Trends"). Insight ``types`` are ``strings`` to be set ad-hoc by including new types in the file: Chart Reader will group any insights together with the same type.
+
+
 ## Contributing
 
 This project welcomes contributions and suggestions.
