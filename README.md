@@ -40,11 +40,12 @@ Four fields are necessary for Chart Reader to provide a screen reader experience
 1. `title` - textual description to be read first. Should summarize the insight as a headline.
 2. ``label`` - textual description read second. Should detail the insight, follow a similar format and structure to other insights of the same ``type``
 3. ``target`` - the data targeted by the insight, specified by the axis and values under selection
-
+```json
     {
         ...,
         target: {axis: "x", values: ["2020-03-01", "2020-04-10"], series: ["Seattle"]}
     }
+```
 
 4. ``type`` - describes how the insight should be grouped (e.g., "Summary", "Trends"). Insight ``types`` are ``strings`` to be set ad-hoc by including new types in the file: Chart Reader will group any insights together with the same type.
 
