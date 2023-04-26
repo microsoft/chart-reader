@@ -30,24 +30,62 @@ Chart Reader is an accessibility engine that renders an SVG chart to a web page 
 
 The __data file__ and __insights list__ describe the content of the accessible chart, while the __Chart Reader configuration__ declares how the chart renders the accessible experience.
 
+The documentation uses a multi-series line chart about "Potholes Reported in Seattle and Atlanta" as an example.
+
 ### Data File Input
 In the data file, Chart Reader supports the following data fields: ``number``, ``string``, ``datetime``, ``date``, ``time``.
 The engine expects data to be complete and tidy: it does not support missing values.
 
 ### Insights List
 The insights JSON structure builds on the [d3-annotation spec](https://react-annotation.susielu.com/).
-Four fields are necessary for Chart Reader to provide a screen reader experience: 
-1. `title` - textual description to be read first. Should summarize the insight as a headline.
-2. ``label`` - textual description read second. Should detail the insight, follow a similar format and structure to other insights of the same ``type``
-3. ``target`` - the data targeted by the insight, specified by the axis and values under selection
+Four fields are necessary for Chart Reader to include insights:
+
+1. ``title`` - textual description to be read first. The ``title`` should summarize the insight as a headline.
+
+2. ``label`` - textual description read second. Details the insight content. Each insight should follow a similar format and structure to other insights of the same ``type``
+
+```json
+    {
+        "note": {
+            "title": [
+                "Most Potholes Reported in New York, 2018"
+            ],
+            "label": [
+                "In the winter of 2018, New York sees its largest number of ",
+                "potholes reported, reaching a peak of close to 3500 potholes in March. "
+            ]
+        }
+    }
+```
+
+3. ``target`` - the data targeted by the insight, specified by the axis and values under selection.
+
 ```json
     {
         "target": {"axis": "x", "values": ["2020-03-01", "2020-04-10"], "series": ["Seattle"]}
     }
 ```
 
-4. ``type`` - describes how the insight should be grouped (e.g., "Summary", "Trends"). Insight ``types`` are ``strings`` to be set ad-hoc by including new types in the file: Chart Reader will group any insights together with the same type.
+    a. ``axis`` - the axis to make the target selection along. Restricted to ``x`` and ``y`` literals.
 
+    b. ``values`` - an array that selects the target values. Should be ``start`` and ``end`` values of a range for linear data (e.g., ``number``, ``datetime``, ``date``, ``time``). Should be ``unique`` list of values in the case ``string`` data.
+
+    c. ``series`` - an array that selects which series to include. _Only for multi-series charts._
+4. ``type`` - describes how the insight should be grouped (e.g., "Summary", "Trends", "Landmarks", "Statistics"). Insight ``types`` are ``strings`` to be set ad-hoc by including new types in the file: Chart Reader will group any insights together with the same type.
+
+```json
+    {
+        "type": "landmarks",
+    }
+```
+
+5. ``dx`` and ``dy``- _optional fields_ that relatively place the visual text of the insight.
+```json
+    {
+        "dx": 30,
+        "dy": -60,
+    }
+```
 
 ## Contributing
 
