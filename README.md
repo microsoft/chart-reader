@@ -66,11 +66,12 @@ Four fields are necessary for Chart Reader to include insights:
     }
 ```
 
-    a. ``axis`` - the axis to make the target selection along. Restricted to ``x`` and ``y`` literals.
+a. ``axis`` - the axis to make the target selection along. Restricted to ``x`` and ``y`` literals.
 
-    b. ``values`` - an array that selects the target values. Should be ``start`` and ``end`` values of a range for linear data (e.g., ``number``, ``datetime``, ``date``, ``time``). Should be ``unique`` list of values in the case ``string`` data.
+b. ``values`` - an array that selects the target values. Should be ``start`` and ``end`` values of a range for linear data (e.g., ``number``, ``datetime``, ``date``, ``time``). Should be ``unique`` list of values in the case ``string`` data.
 
-    c. ``series`` - an array that selects which series to include. _Only for multi-series charts._
+c. ``series`` - an array that selects which series to include. _Only for multi-series charts._
+
 4. ``type`` - describes how the insight should be grouped (e.g., "Summary", "Trends", "Landmarks", "Statistics"). Insight ``types`` are ``strings`` to be set ad-hoc by including new types in the file: Chart Reader will group any insights together with the same type.
 
 ```json
